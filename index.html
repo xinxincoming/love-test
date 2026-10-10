@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>你的恋爱依恋类型测试</title>
+<style>
+  body { font-family: -apple-system, "PingFang SC", sans-serif; background: #fff5f7; margin: 0; padding: 20px; color: #333; }
+  .card { max-width: 480px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 28px 22px; box-shadow: 0 4px 20px rgba(255,105,135,.12); }
+  h1 { font-size: 20px; text-align: center; color: #ff4d6d; margin-bottom: 6px; }
+  .sub { text-align: center; font-size: 13px; color: #999; margin-bottom: 24px; }
+  .q { display: none; }
+  .q.active { display: block; }
+  .q-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; line-height: 1.5; }
+  .opt { display: block; width: 100%; text-align: left; padding: 14px 16px; margin-bottom: 10px; border: 1.5px solid #ffe0e6; border-radius: 12px; background: #fff; font-size: 14px; cursor: pointer; transition: .2s; }
+  .opt:hover { border-color: #ff8fa3; background: #fff8f9; }
+  .opt.selected { border-color: #ff4d6d; background: #fff0f3; }
+  .progress { font-size: 12px; color: #bbb; text-align: center; margin-bottom: 16px; }
+  .result { display: none; text-align: center; }
+  .result.active { display: block; }
+  .result h2 { color: #ff4d6d; font-size: 22px; margin-bottom: 10px; }
+  .result p { font-size: 14px; line-height: 1.8; color: #555; text-align: left; }
+  .badge { display: inline-block; background: #ff4d6d; color: #fff; padding: 6px 16px; border-radius: 20px; font-size: 13px; margin-bottom: 16px; }
+  .restart { margin-top: 20px; padding: 12px 28px; border: none; background: #ff4d6d; color: #fff; border-radius: 24px; font-size: 14px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>你的恋爱依恋类型测试</h1>
+  <p class="sub">10 道题，测出你在亲密关系里的真实模式</p>
+  <div class="progress" id="progress">第 1 / 10 题</div>
+
+  <div id="quiz"></div>
+
+  <div class="result" id="result">
+    <div class="badge" id="typeBadge"></div>
+    <h2 id="typeName"></h2>
+    <p id="typeDesc"></p>
+    <button class="restart" onclick="location.reload()">再测一次</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  { q: "当伴侣很久没回消息时，你通常会：", opts: [
+    { t: "很不安，反复看手机，想是不是自己做错了什么", s: "anxious" },
+    { t: "无所谓，各忙各的挺好", s: "avoidant" },
+    { t: "有点在意，但相信对方在忙，自己先做别的事", s: "secure" }
+  ]},
+  { q: "在一段关系里，你最害怕的是：", opts: [
+    { t: "被抛弃、被冷落", s: "anxious" },
+    { t: "失去自己的空间和自由", s: "avoidant" },
+    { t: "暂时没有特别害怕的，关系让我安心", s: "secure" }
+  ]},
+  { q: "伴侣想和你聊很深入的情绪话题，你会：", opts: [
+    { t: "很愿意，聊完觉得更亲近", s: "secure" },
+    { t: "有点想逃，觉得压力大", s: "avoidant" },
+    { t: "想聊，但容易越聊越焦虑，怕对方嫌我烦", s: "anxious" }
+  ]},
+  { q: "发生争吵后，你通常：", opts: [
+    { t: "主动想尽快和好，受不了冷战", s: "anxious" },
+    { t: "需要自己待着，冷静很久才想沟通", s: "avoidant" },
+    { t: "会难过，但能等双方平静后再好好谈", s: "secure" }
+  ]},
+  { q: "对于“依赖伴侣”这件事，你的感受是：", opts: [
+    { t: "我很想依赖，但怕对方觉得我太黏", s: "anxious" },
+    { t: "不太习惯依赖别人，靠自己最稳", s: "avoidant" },
+    { t: "适度依赖是正常的，我也愿意被依赖", s: "secure" }
+  ]},
+  { q: "伴侣夸别人好看时，你会：", opts: [
+    { t: "表面没事，心里很在意，甚至有点酸", s: "anxious" },
+    { t: "完全不在意，跟我没关系", s: "avoidant" },
+    { t: "可能会开玩笑吃个醋，但不会真的放心上", s: "secure" }
+  ]},
+  { q: "你觉得理想的亲密关系是：", opts: [
+    { t: "两个人几乎形影不离，什么都要分享", s: "anxious" },
+    { t: "彼此独立，各有各的生活，互不干涉太多", s: "avoidant" },
+    { t: "亲密但有边界，既能靠近也能各自精彩", s: "secure" }
+  ]},
+  { q: "当你情绪低落时，你会：", opts: [
+    { t: "很希望伴侣立刻察觉并安慰我", s: "anxious" },
+    { t: "自己消化，不太想让对方知道", s: "avoidant" },
+    { t: "会告诉对方我需要陪伴，也接受他暂时帮不上", s: "secure" }
+  ]},
+  { q: "如果伴侣提出想一个人去旅行，你会：", opts: [
+    { t: "有点慌，会想他是不是不想跟我在一起", s: "anxious" },
+    { t: "挺好的，我也需要自己的空间", s: "avoidant" },
+    { t: "支持，但会希望他路上跟我报平安", s: "secure" }
+  ]},
+  { q: "总体来说，你在感情里：", opts: [
+    { t: "容易患得患失，情绪起伏大", s: "anxious" },
+    { t: "不太容易完全敞开心扉", s: "avoidant" },
+    { t: "相对稳定，能信任也能独立", s: "secure" }
+  ]}
+];
+
+const results = {
+  secure: { name: "安全型依恋", desc: "你在亲密关系中相对稳定，既能信任对方，也能保持自我。你不害怕靠近，也不恐惧独处，遇到冲突时倾向于沟通而非逃避或爆发。这种模式通常来自被稳定回应过的成长经历，也让你在关系里更有安全感。" },
+  anxious: { name: "焦虑型依恋", desc: "你对亲密关系投入很深，但也容易患得患失。你很在意对方的回应，一点冷淡就可能触发不安。你渴望被确认、被偏爱，有时会为了留住关系而委屈自己。学会把安全感建立在自己身上，是你重要的功课。" },
+  avoidant: { name: "回避型依恋", desc: "你重视独立和边界，习惯自己消化情绪，不太容易完全敞开心扉。当关系太近时，你可能会本能地想后退。这并不代表你不在乎，而是你更习惯用距离保护自己。试着允许别人靠近一点点，关系会有不一样的可能。" }
+};
+
+let current = 0;
+const answers = [];
+
+const quizEl = document.getElementById('quiz');
+const progressEl = document.getElementById('progress');
+const resultEl = document.getElementById('result');
+
+function render() {
+  quizEl.innerHTML = '';
+  const item = questions[current];
+  const div = document.createElement('div');
+  div.className = 'q active';
+  div.innerHTML = `<div class="q-title">${current + 1}. ${item.q}</div>` +
+    item.opts.map((o, i) => `<button class="opt" data-s="${o.s}" data-i="${i}">${o.t}</button>`).join('');
+  quizEl.appendChild(div);
+  progressEl.textContent = `第 ${current + 1} / ${questions.length} 题`;
+
+  div.querySelectorAll('.opt').forEach(btn => {
+    btn.onclick = () => {
+      div.querySelectorAll('.opt').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      answers[current] = btn.dataset.s;
+      setTimeout(() => {
+        if (current < questions.length - 1) { current++; render(); }
+        else { showResult(); }
+      }, 220);
+    };
+  });
+}
+
+function showResult() {
+  const count = { secure: 0, anxious: 0, avoidant: 0 };
+  answers.forEach(a => count[a]++);
+  let type = 'secure';
+  if (count.anxious >= count.avoidant && count.anxious > count.secure) type = 'anxious';
+  else if (count.avoidant > count.anxious && count.avoidant > count.secure) type = 'avoidant';
+  else if (count.secure >= count.anxious && count.secure >= count.avoidant) type = 'secure';
+  else type = count.anxious >= count.avoidant ? 'anxious' : 'avoidant';
+
+  const r = results[type];
+  document.getElementById('typeBadge').textContent = '你的类型';
+  document.getElementById('typeName').textContent = r.name;
+  document.getElementById('typeDesc').textContent = r.desc;
+  quizEl.style.display = 'none';
+  progressEl.style.display = 'none';
+  resultEl.classList.add('active');
+}
+
+render();
+</script>
+</body>
+</html>
